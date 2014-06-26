@@ -16,6 +16,7 @@ get '/probes' do
 
 	# retrieve latest ssids from snoopy
 	begin
+		puts "Using db file: #{ENV['snoopy_db_file']}"
 		db = SQLite3::Database.open ENV['snoopy_db_file'], { :busy_timeout => 1000 }
 		ssids = []
 
