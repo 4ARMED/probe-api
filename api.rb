@@ -1,5 +1,5 @@
 require 'sinatra'
-require 'sqlite3'
+require 'mysql2'
 require 'json'
 
 before do
@@ -11,28 +11,23 @@ end
 
 # Use environment variable or default to /opt/snoopy-ng
 ENV['snoopy_db_file'] ||= '/opt/snoopy-ng/snoopy.db'
+ENV['snoopy_db_host'] ||= 'localhost'
+ENV['snoopy_db_user'] ||= 'root'
+ENV['snoopy_db_name'] ||= 'snoopy'
 
 get '/probes' do
 
 	# retrieve latest ssids from snoopy
 	begin
-		puts "Using db file: #{ENV['snoopy_db_file']}"
-		db = SQLite3::Database.open ENV['snoopy_db_file'], { :busy_timeout => 1000 }
+		db = Mysql2::Client.new(:host => ENV['snoopy_db_host'], :username => ENV['snoopy_db_user'], :database => ENV['snoopy_db_name'])
 		ssids = []
 
-		rows = db.execute "SELECT ssid FROM wifi_client_ssids"
+		rows = db.query "SELECT * FROM wifi_client_ssids"
 		rows.each do |row|
-			ssids << row.first
+			ssids << row['ssid']
 		end	
 
 		ssids.uniq.reverse.to_json
-
-	rescue SQLite3::Exception => e
-		puts "Exception occurred"
-		puts e
-
-	ensure
-		db.close if db
 	end
 end
 
